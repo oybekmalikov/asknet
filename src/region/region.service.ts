@@ -13,8 +13,15 @@ export class RegionService {
 		return this.regionModel.create(createRegionDto);
 	}
 
-	findAll() {
-		return this.regionModel.findAll({ include: { all: true } });
+	async findAll() {
+		const regions = await this.regionModel.findAll({
+			include: { all: true },
+		});
+		if (!regions.length) {
+			return { message: "Regions not found" };
+		} else {
+			return regions;
+		}
 	}
 
 	async findOne(id: number) {
@@ -22,19 +29,35 @@ export class RegionService {
 			include: { all: true },
 		});
 		if (!region) {
-			throw new NotFoundException(`Region not found with id: ${id}`);
+			throw new NotFoundException(`No region found with id: ${id}`);
 		} else {
 			return region;
 		}
 	}
 
 	async update(id: number, updateRegionDto: UpdateRegionDto) {
-		await this.findOne(id);
-		return this.regionModel.update(updateRegionDto, { where: { id } });
+		const region = await this.regionModel.findByPk(id, {
+			include: { all: true },
+		});
+		if (!region) {
+			throw new NotFoundException(`No region found with id: ${id}`);
+		} else {
+			return this.regionModel.update(updateRegionDto, {
+				where: { id },
+				returning: true,
+			});
+		}
 	}
 
 	async remove(id: number) {
-		await this.findOne(id);
-		return this.regionModel.destroy({ where: { id } });
+		const region = await this.regionModel.findByPk(id, {
+			include: { all: true },
+		});
+		if (!region) {
+			throw new NotFoundException(`No region found with id: ${id}`);
+		} else {
+			await this.regionModel.destroy({ where: { id } });
+			return { message: "Region deleted" };
+		}
 	}
 }

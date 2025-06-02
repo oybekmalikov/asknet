@@ -13,8 +13,15 @@ export class DistrictService {
 		return this.districtModel.create(createDistrictDto);
 	}
 
-	findAll() {
-		return this.districtModel.findAll({ include: { all: true } });
+	async findAll() {
+		const districts = await this.districtModel.findAll({
+			include: { all: true },
+		});
+		if (!districts.length) {
+			return { message: "Districts not found" };
+		} else {
+			return districts;
+		}
 	}
 
 	async findOne(id: number) {
@@ -22,19 +29,35 @@ export class DistrictService {
 			include: { all: true },
 		});
 		if (!district) {
-			throw new NotFoundException(`District not found with id: ${id}`);
+			throw new NotFoundException(`No district found with id: ${id}`);
 		} else {
 			return district;
 		}
 	}
 
 	async update(id: number, updateDistrictDto: UpdateDistrictDto) {
-		await this.findOne(id);
-		return this.districtModel.update(updateDistrictDto, { where: { id } });
+		const district = await this.districtModel.findByPk(id, {
+			include: { all: true },
+		});
+		if (!district) {
+			throw new NotFoundException(`No district found with id: ${id}`);
+		} else {
+			return this.districtModel.update(updateDistrictDto, {
+				where: { id },
+				returning: true,
+			});
+		}
 	}
 
 	async remove(id: number) {
-		await this.findOne(id);
-		return this.districtModel.destroy({ where: { id } });
+		const region = await this.districtModel.findByPk(id, {
+			include: { all: true },
+		});
+		if (!region) {
+			throw new NotFoundException(`No district found with id: ${id}`);
+		} else {
+			await this.districtModel.destroy({ where: { id } });
+			return { message: "District deleted" };
+		}
 	}
 }

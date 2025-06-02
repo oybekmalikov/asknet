@@ -41,7 +41,7 @@ export class AuthAdminsService {
 	async signIn(adminSignInDto: AdminSignInDto, res: Response) {
 		const admin = await this.adminsService.findByEmail(adminSignInDto.email);
 		if (!admin) {
-			throw new BadRequestException("Yaroqsiz email yoki parol");
+			throw new BadRequestException("Invalid email or password");
 		}
 		if (!admin.is_active) {
 			throw new UnauthorizedException("Please, activate your account!");
@@ -51,7 +51,7 @@ export class AuthAdminsService {
 			admin.password
 		);
 		if (!validPassword) {
-			throw new BadRequestException("Yaroqsiz email yoki parol");
+			throw new BadRequestException("Invalid email or password");
 		}
 		const { accessToken, refreshToken } = await this.generateTokens(admin);
 		res.cookie("refreshToken", refreshToken, {
@@ -61,7 +61,7 @@ export class AuthAdminsService {
 		admin.refresh_token = await bcrypt.hash(refreshToken, 7);
 		await admin.save();
 		return {
-			message: "Xush kelibsiz!",
+			message: "Welcome!",
 			accessToken,
 		};
 	}
@@ -72,11 +72,11 @@ export class AuthAdminsService {
 	) {
 		const decodedRefreshToken = await this.jwtService.decode(refresh_token);
 		if (adminId !== decodedRefreshToken["id"]) {
-			throw new ForbiddenException("Ruxsat yo'q");
+			throw new ForbiddenException("Access denied");
 		}
 		const admin = await this.adminsService.findOne(adminId);
 		if (!admin || !admin.refresh_token) {
-			throw new NotFoundException("Admin topilmadi");
+			throw new NotFoundException("Admin not found");
 		}
 		const tokenMatch = await bcrypt.compare(refresh_token, admin.refresh_token);
 		if (!tokenMatch) {

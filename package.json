@@ -34,12 +34,14 @@
     "cookie-parser": "^1.4.7",
     "hbs": "^4.2.0",
     "i": "^0.3.7",
+    "nestjs-telegraf": "^2.9.1",
     "npm": "^11.4.1",
     "pg": "^8.16.0",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
     "sequelize": "^6.37.7",
     "sequelize-typescript": "^2.1.6",
+    "telegraf": "^4.16.3",
     "winston": "^3.17.0"
   },
   "devDependencies": {
@@ -57,6 +59,7 @@
     "@types/node": "^22.10.7",
     "@types/sequelize": "^4.28.20",
     "@types/supertest": "^6.0.2",
+    "@types/uuid": "^10.0.0",
     "eslint": "^9.18.0",
     "eslint-config-prettier": "^10.0.1",
     "eslint-plugin-prettier": "^5.2.2",

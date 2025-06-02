@@ -1,9 +1,12 @@
-import { Module } from '@nestjs/common';
-import { SurveyTypeService } from './survey_type.service';
-import { SurveyTypeController } from './survey_type.controller';
+import { Module } from "@nestjs/common";
+import { SequelizeModule } from "@nestjs/sequelize";
+import { SurveyType } from "./models/survey_type.model";
+import { SurveyTypeController } from "./survey_type.controller";
+import { SurveyTypeService } from "./survey_type.service";
 
 @Module({
-  controllers: [SurveyTypeController],
-  providers: [SurveyTypeService],
+	imports: [SequelizeModule.forFeature([SurveyType])],
+	controllers: [SurveyTypeController],
+	providers: [SurveyTypeService],
 })
 export class SurveyTypeModule {}

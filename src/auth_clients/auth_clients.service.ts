@@ -4,6 +4,7 @@ import {
 	ForbiddenException,
 	Injectable,
 	NotFoundException,
+	ServiceUnavailableException,
 	UnauthorizedException,
 } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
@@ -12,12 +13,14 @@ import { Response } from "express";
 import { ClientsService } from "../clients/clients.service";
 import { CreateClientDto } from "../clients/dto/create-client.dto";
 import { Client } from "../clients/models/client.model";
+import { MailService } from "../mail/mail.service";
 import { ClientSignInDto } from "./dto/client-sign-in.dto";
 @Injectable()
 export class AuthClientsService {
 	constructor(
 		private readonly clientsService: ClientsService,
-		private readonly jwtService: JwtService
+		private readonly jwtService: JwtService,
+		private readonly mailService: MailService
 	) {}
 	async generateTokens(client: Client) {
 		const payload = {
@@ -45,18 +48,24 @@ export class AuthClientsService {
 			createClientDto.email
 		);
 		if (condidate) {
-			throw new ConflictException(`${createClientDto.email} allaqachon mavjud`);
+			throw new ConflictException(`${createClientDto.email} already exists`);
 		}
 		const newClient = await this.clientsService.create(createClientDto);
+		try {
+			await this.mailService.sendMail(newClient);
+		} catch (error) {
+			console.log(error);
+			throw new ServiceUnavailableException({
+				message: "Error on sending activation to email",
+			});
+		}
 		return {
-			message: "Client created",
-			newPatientId: newClient.id,
+			message: "Client created, activation link sent to email",
+			newClient,
 		};
 	}
 	async signIn(clientSignInDto: ClientSignInDto, res: Response) {
-		const client = await this.clientsService.findByEmail(
-			clientSignInDto.email
-		);
+		const client = await this.clientsService.findByEmail(clientSignInDto.email);
 		if (!client) {
 			throw new BadRequestException("Invalid email or password");
 		}

@@ -1,4 +1,8 @@
-import { ConflictException, Injectable } from "@nestjs/common";
+import {
+	ConflictException,
+	Injectable,
+	NotFoundException,
+} from "@nestjs/common";
 import { InjectModel } from "@nestjs/sequelize";
 import * as bcrypt from "bcrypt";
 import { CreateAdminDto } from "./dto/create-admin.dto";
@@ -20,23 +24,64 @@ export class AdminsService {
 		return newAdmin;
 	}
 
-	findAll() {
-		return this.adminModel.findAll({ include: { all: true } });
+	async findAll() {
+		const admins = await this.adminModel.findAll({ include: { all: true } });
+		if (!admins.length) {
+			return { message: "Admins not found" };
+		} else {
+			return admins;
+		}
 	}
 
-	findOne(id: number) {
-		return this.adminModel.findByPk(id, { include: { all: true } });
+	async findOne(id: number) {
+		const admin = await this.adminModel.findByPk(id, {
+			include: { all: true },
+		});
+		if (!admin) {
+			throw new NotFoundException(`No admin found with id: ${id}`);
+		} else {
+			return admin;
+		}
 	}
 	findByEmail(email: string) {
 		return this.adminModel.findOne({ where: { email } });
 	}
 
-	update(id: number, updateAdminDto: UpdateAdminDto) {
-		return this.adminModel.update(updateAdminDto, { where: { id } });
+	async update(id: number, updateAdminDto: UpdateAdminDto) {
+		const admin = await this.adminModel.findByPk(id, {
+			include: { all: true },
+		});
+		if (!admin) {
+			throw new NotFoundException(`No admin found with id: ${id}`);
+		} else {
+			if ("password" in updateAdminDto) {
+				const hashshedPassword = await bcrypt.hash(updateAdminDto.password!, 7);
+				return this.adminModel.update(
+					{ ...updateAdminDto, password: hashshedPassword },
+					{
+						where: { id },
+						returning: true,
+					}
+				)
+			} else {
+				return this.adminModel.update(updateAdminDto, {
+					where: { id },
+					returning: true,
+				});
+			}
+		}
 	}
 
-	remove(id: number) {
-		return this.adminModel.destroy({ where: { id } });
+	async remove(id: number) {
+		const admin = await this.adminModel.findByPk(id, {
+			include: { all: true },
+		});
+		if (!admin) {
+			throw new NotFoundException(`No admin found with id: ${id}`);
+		} else {
+			await this.adminModel.destroy({ where: { id } });
+			return {message:"Admin deleted"}
+		}
 	}
 	async updateRefreshToken(adminId: number, refreshToken: string) {
 		const updatedAdmin = this.adminModel.update(

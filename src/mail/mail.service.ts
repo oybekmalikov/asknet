@@ -6,10 +6,10 @@ import { Client } from "../clients/models/client.model";
 export class MailService {
 	constructor(private readonly mailerService: MailerService) {}
 	async sendMail(client: Client) {
-		const url = `${process.env.API_HOST}/api/patients/activate/${client.activation_link}`;
+		const url = `${process.env.API_HOST}/api/clients/activate/${client.activation_link}`;
 		await this.mailerService.sendMail({
 			to: client.email,
-			subject: "“So‘rov.uz” sahifasiga xush kelibsiz",
+			subject: "“So‘rovnoma.uz” sahifasiga xush kelibsiz",
 			html: `<h1>Salom! Hurmatli ${client.full_name},</h1>
 			<h2>Tasdiqlash uchun pastga bosing</h2>
 			<p>

@@ -61,6 +61,12 @@ export class Admin extends Model<Admin, IAdminCreationAttr> {
 		example: "...",
 		description: "Admin's refresh token",
 	})
+	@Column({ type: DataType.ENUM("uz", "ru"), defaultValue: "uz" })
+	declare language: string;
+	@Column({ type: DataType.STRING })
+	declare last_state: string;
+	@Column({ type: DataType.STRING })
+	declare userId: string;
 	@Column({ type: DataType.STRING })
 	declare refresh_token: string;
 }

@@ -6,8 +6,12 @@ import {
 	Param,
 	Patch,
 	Post,
+	UseGuards,
 } from "@nestjs/common";
 import { ApiOperation, ApiResponse } from "@nestjs/swagger";
+import { accessMatrix } from "../app.constants";
+import { AccessControlGuard } from "../common/guards/access-control.guard";
+import { AuthGuard } from "../common/guards/auth.guard";
 import { CreateSurveyTypeDto } from "./dto/create-survey_type.dto";
 import { UpdateSurveyTypeDto } from "./dto/update-survey_type.dto";
 import { SurveyType } from "./models/survey_type.model";
@@ -23,6 +27,8 @@ export class SurveyTypeController {
 		description: "Create Survey Type",
 		type: SurveyType,
 	})
+	@UseGuards(new AccessControlGuard(accessMatrix, "survey_types"))
+	@UseGuards(AuthGuard)
 	@Post()
 	create(@Body() createSurveyTypeDto: CreateSurveyTypeDto) {
 		return this.surveyTypesService.create(createSurveyTypeDto);
@@ -56,6 +62,8 @@ export class SurveyTypeController {
 		description: "Survey Type's updated info",
 		type: [SurveyType],
 	})
+	@UseGuards(new AccessControlGuard(accessMatrix, "survey_types"))
+	@UseGuards(AuthGuard)
 	@Patch(":id")
 	update(
 		@Param("id") id: string,
@@ -66,6 +74,8 @@ export class SurveyTypeController {
 
 	@ApiOperation({ summary: "Delete One Survey Type By Id" })
 	@ApiResponse({ status: 200, description: "Return Effected", type: Number })
+	@UseGuards(new AccessControlGuard(accessMatrix, "survey_types"))
+	@UseGuards(AuthGuard)
 	@Delete(":id")
 	remove(@Param("id") id: string) {
 		return this.surveyTypesService.remove(+id);

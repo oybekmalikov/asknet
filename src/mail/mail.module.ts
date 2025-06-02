@@ -18,7 +18,7 @@ import { MailService } from "./mail.service";
 					},
 				},
 				defaults: {
-					from: `'Private Hospital' <${config.get<string>("SMTP_USER")}>`,
+					from: `'AskNET' <${config.get<string>("SMTP_USER")}>`,
 				},
 				template: {
 					dir: join(__dirname, "templates"),

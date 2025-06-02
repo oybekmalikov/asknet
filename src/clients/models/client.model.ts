@@ -1,5 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { Column, DataType, Model, Table } from "sequelize-typescript";
+import { Column, DataType, HasMany, Model, Table } from "sequelize-typescript";
+import { Survey } from "../../surveys/models/survey.model";
 
 interface IClientCreationDto {
 	full_name: string;
@@ -78,4 +79,6 @@ export class Client extends Model<Client, IClientCreationDto> {
 	declare refresh_token: string;
 	@Column({ type: DataType.UUID, defaultValue: DataType.UUIDV4 })
 	declare activation_link: string;
+	@HasMany(() => Survey)
+	surveys: Survey[];
 }

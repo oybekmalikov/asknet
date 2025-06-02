@@ -29,8 +29,8 @@ async function start() {
 			credentials: true,
 		});
 		const config = new DocumentBuilder()
-			.setTitle("Private Hospital Project")
-			.setDescription("Discount REST API")
+			.setTitle("AskNET Project")
+			.setDescription("AskNET REST API")
 			.setVersion("1.0")
 			.addTag("Nest JS", "Swagger")
 			.addTag("Validation", "Guard")
