@@ -12,7 +12,7 @@ export class BotUpdate {
 	@UseGuards(AdminGuard)
 	@Command("admin")
 	async onAdminCommand(ctx: Context) {
-		await this.botService.adminMenu(ctx, "Welcome, Admin 🙋‍♂️");
+		await this.botService.adminMenu(ctx, "<b>Admin Menu</b>");
 	}
 	@On("contact")
 	async onContact(ctx: Context) {
@@ -26,4 +26,5 @@ export class BotUpdate {
 	async onText(ctx: Context) {
 		return this.botService.onText(ctx);
 	}
+	
 }

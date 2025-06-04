@@ -1,7 +1,11 @@
 import { Injectable } from "@nestjs/common";
 import { InjectModel } from "@nestjs/sequelize";
 import { Context, Markup } from "telegraf";
-import { usersMainButtonsRu, usersMainButtonsUz } from "./bot.constants";
+import {
+	adminsMainButttons,
+	usersMainButtonsRu,
+	usersMainButtonsUz,
+} from "./bot.constants";
 import { User } from "./models/users.model";
 import { UserService } from "./users/users.service";
 
@@ -30,7 +34,7 @@ export class BotService {
 					}
 					user.phone_number = phone;
 					user.status = true;
-					user.last_state="my_survey"
+					user.last_state = "my_survey";
 					await user.save();
 					await ctx.replyWithHTML(
 						user.language == "uz"
@@ -83,9 +87,7 @@ export class BotService {
 		try {
 			await ctx.replyWithHTML(menuText, {
 				parse_mode: "HTML",
-				...Markup.keyboard([["<Master>", "<Customer>"], ["<Services>"]])
-					.oneTime()
-					.resize(),
+				...Markup.keyboard(adminsMainButttons).oneTime().resize(),
 			});
 		} catch (error) {
 			console.log(`Error on adminMenu: `, error);

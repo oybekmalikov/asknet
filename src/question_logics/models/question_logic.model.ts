@@ -7,7 +7,6 @@ import {
 	Model,
 	Table,
 } from "sequelize-typescript";
-import { QuestionAnswer } from "../../question_answers/models/question_answer.model";
 import { Question } from "../../questions/models/question.model";
 
 interface IQuestionLogicCreationDto {
@@ -46,7 +45,6 @@ export class QuestionLogic extends Model<
 		description: "Option's ID",
 	})
 	@Column({ type: DataType.INTEGER })
-	@ForeignKey(() => QuestionAnswer)
 	declare option_id: number;
 
 	@ApiProperty({
@@ -74,8 +72,6 @@ export class QuestionLogic extends Model<
 	declare next_question_id: number;
 	@BelongsTo(() => Question)
 	question: Question;
-	@BelongsTo(() => QuestionAnswer)
-	option: Question;
 	@BelongsTo(() => Question)
 	next_question: Question;
 }

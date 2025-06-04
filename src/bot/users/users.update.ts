@@ -36,4 +36,12 @@ export class UserUpdate {
 	async toMainMenuRu(ctx: Context) {
 		return this.userService.toMainMenu(ctx, "ru");
 	}
+	@Action(/startsurvey_\d+_\d+/)
+	async onStartSurvey(ctx: Context) {
+		return this.userService.onStartSurvey(ctx);
+	}
+	@Action(/survey_\d+_\d+_\d+_\d+_\d+/)
+	async onSurvey(ctx: Context) {
+		return this.userService.onSurvey(ctx);
+	}
 }

@@ -16,6 +16,8 @@ export const mySurveyButtonsUz = [
 ];
 export const mySurveyButtonsRu = [
 	["👤 Обо мне", "👨‍👩‍👧‍👦 Моя семья"],
-	["🎓 Образование", "💼 Моя профессия",],
+	["🎓 Образование", "💼 Моя профессия"],
+	["💰 Мои доходы/расходы"],
 	["🏠 Главное меню"],
 ];
+export const adminsMainButttons = [["So'rovnomalar"]];

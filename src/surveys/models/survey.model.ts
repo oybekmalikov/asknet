@@ -9,6 +9,7 @@ import {
 	Table,
 } from "sequelize-typescript";
 import { SurveyStatus } from "../../bot/models/survey_status.model";
+import { UserSurvey } from "../../bot/models/user_surveys.model";
 import { Client } from "../../clients/models/client.model";
 import { Question } from "../../questions/models/question.model";
 import { SurveyStatistics } from "../../survey_statistics/models/survey_statistic.model";
@@ -203,4 +204,6 @@ export class Survey extends Model<Survey, ISurveyCreationAttr> {
 	survey_statistics: SurveyStatistics[];
 	@HasMany(() => Question)
 	question: Question[];
+	@HasMany(() => UserSurvey)
+	usersurvey: UserSurvey[];
 }

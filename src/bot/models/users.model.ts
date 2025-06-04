@@ -3,6 +3,7 @@ import { Column, DataType, HasMany, Model, Table } from "sequelize-typescript";
 import { Referral } from "./refferals.model";
 import { Response } from "./responses.model";
 import { SurveyStatus } from "./survey_status.model";
+import { UserSurvey } from "./user_surveys.model";
 
 interface IUserCreationDto {
 	first_name?: string;
@@ -125,4 +126,6 @@ export class User extends Model<User, IUserCreationDto> {
 	responses: Response[];
 	@HasMany(() => Referral)
 	referral: Referral[];
+	@HasMany(() => UserSurvey)
+	user_surveys: UserSurvey[];
 }

@@ -30,6 +30,7 @@ import { SurveyType } from "./survey_type/models/survey_type.model";
 import { SurveyTypeModule } from "./survey_type/survey_type.module";
 import { Survey } from "./surveys/models/survey.model";
 import { SurveysModule } from "./surveys/surveys.module";
+import { UserSurvey } from './bot/models/user_surveys.model'
 
 @Module({
 	imports: [
@@ -62,6 +63,7 @@ import { SurveysModule } from "./surveys/surveys.module";
 				QuestionAnswer,
 				QuestionLogic,
 				Referral,
+				UserSurvey
 			],
 			autoLoadModels: true,
 			sync: { alter: true },
