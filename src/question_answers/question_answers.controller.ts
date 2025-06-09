@@ -10,8 +10,8 @@ import {
 } from "@nestjs/common";
 import { ApiOperation, ApiResponse } from "@nestjs/swagger";
 import { accessMatrix } from "../app.constants";
-import { AccessControlGuard } from "../common/guards/access-control.guard";
-import { AuthGuard } from "../common/guards/auth.guard";
+import { AccessControlGuard } from "../common/Guards/access-control.guard";
+import { AuthGuard } from "../common/Guards/auth.guard";
 import { CreateQuestionAnswerDto } from "./dto/create-question_answer.dto";
 import { UpdateQuestionAnswerDto } from "./dto/update-question_answer.dto";
 import { QuestionAnswer } from "./models/question_answer.model";

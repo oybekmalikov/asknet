@@ -13,8 +13,8 @@ import {
 import { ApiOperation, ApiResponse } from "@nestjs/swagger";
 import { Request } from "express";
 import { accessMatrix } from "../app.constants";
-import { AccessControlGuard } from "../common/guards/access-control.guard";
-import { AuthGuard } from "../common/guards/auth.guard";
+import { AccessControlGuard } from "../common/Guards/access-control.guard";
+import { AuthGuard } from "../common/Guards/auth.guard";
 import { CreateSurveyDto } from "./dto/create-survey.dto";
 import { UpdateSurveyDto } from "./dto/update-survey.dto";
 import { Survey } from "./models/survey.model";
@@ -40,10 +40,7 @@ export class SurveysController {
 	@Get()
 	findAll(@Req() req: Request) {
 		const user = (req as any).user;
-		if (
-			user.roles.includes("admin") ||
-			user.roles.includes("superadmin") 
-		) {
+		if (user.roles.includes("admin") || user.roles.includes("superadmin")) {
 			return this.surveysService.findAll();
 		} else if (user.roles.includes("client")) {
 			return this.surveysService.findByClientId(user.id);
@@ -58,10 +55,7 @@ export class SurveysController {
 	@Get(":id")
 	findOne(@Param("id") id: string, @Req() req: Request) {
 		const user = (req as any).user;
-		if (
-			user.roles.includes("admin") ||
-			user.roles.includes("superadmin") 
-		) {
+		if (user.roles.includes("admin") || user.roles.includes("superadmin")) {
 			return this.surveysService.findOne(+id);
 		} else if (user.roles.includes("client")) {
 			return this.surveysService.findOneByClientId(+id, user.id);

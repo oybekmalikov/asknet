@@ -10,9 +10,9 @@ import {
 } from "@nestjs/common";
 import { ApiOperation, ApiResponse } from "@nestjs/swagger";
 import { accessMatrix } from "../app.constants";
-import { AccessControlGuard } from "../common/guards/access-control.guard";
-import { AuthGuard } from "../common/guards/auth.guard";
-import { SelfGuard } from "../common/guards/self.guard";
+import { AccessControlGuard } from "../common/Guards/access-control.guard";
+import { AuthGuard } from "../common/Guards/auth.guard";
+import { SelfGuard } from "../common/Guards/self.guard";
 import { ClientsService } from "./clients.service";
 import { CreateClientDto } from "./dto/create-client.dto";
 import { UpdateClientDto } from "./dto/update-client.dto";

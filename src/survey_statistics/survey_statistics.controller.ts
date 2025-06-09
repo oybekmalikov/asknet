@@ -1,8 +1,8 @@
 import { Controller, Get, Param, UseGuards } from "@nestjs/common";
 import { ApiOperation, ApiResponse } from "@nestjs/swagger";
 import { accessMatrix } from "../app.constants";
-import { AccessControlGuard } from "../common/guards/access-control.guard";
-import { AuthGuard } from "../common/guards/auth.guard";
+import { AccessControlGuard } from "../common/Guards/access-control.guard";
+import { AuthGuard } from "../common/Guards/auth.guard";
 import { SurveyStatistics } from "./models/survey_statistic.model";
 import { SurveyStatisticsService } from "./survey_statistics.service";
 

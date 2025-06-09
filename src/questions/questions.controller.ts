@@ -10,15 +10,15 @@ import {
 	UseGuards,
 	UseInterceptors,
 } from "@nestjs/common";
+import { FileInterceptor } from "@nestjs/platform-express";
 import { ApiOperation, ApiResponse } from "@nestjs/swagger";
 import { accessMatrix } from "../app.constants";
-import { AccessControlGuard } from "../common/guards/access-control.guard";
-import { AuthGuard } from "../common/guards/auth.guard";
+import { AccessControlGuard } from "../common/Guards/access-control.guard";
+import { AuthGuard } from "../common/Guards/auth.guard";
 import { CreateQuestionDto } from "./dto/create-question.dto";
 import { UpdateQuestionDto } from "./dto/update-question.dto";
 import { Question } from "./models/question.model";
 import { QuestionsService } from "./questions.service";
-import { FileInterceptor } from '@nestjs/platform-express'
 
 @Controller("questions")
 export class QuestionsController {
@@ -34,7 +34,7 @@ export class QuestionsController {
 		@Body() createQuestionDto: CreateQuestionDto,
 		@UploadedFile() image: any
 	) {
-		console.log(createQuestionDto,image)
+		console.log(createQuestionDto, image);
 		return this.questionsService.create(createQuestionDto, image);
 	}
 
