@@ -138,7 +138,8 @@ export class UserService {
 			{ status: true },
 			{ where: { userId: currUser.id, surveyId: survey.id } }
 		);
-		currUser.balance = currUser.balance + Number(survey.reward_per_participant);
+		currUser.balance =
+			Number(currUser.balance) + Number(survey.reward_per_participant);
 		await currUser.save();
 		ctx.replyWithHTML(
 			currUser.language == "uz"
