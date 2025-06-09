@@ -1,7 +1,9 @@
 import { Injectable } from "@nestjs/common";
 import { InjectModel } from "@nestjs/sequelize";
 import { InjectBot } from "nestjs-telegraf";
+import { Op } from "sequelize";
 import { Context, Markup, Telegraf } from "telegraf";
+import { Admin } from "../../admins/models/admin.models";
 import { BOT_NAME } from "../../app.constants";
 import { Survey } from "../../surveys/models/survey.model";
 import { UserSurvey } from "../models/user_surveys.model";
@@ -12,6 +14,7 @@ export class AdminService {
 	constructor(
 		@InjectBot(BOT_NAME) private readonly bot: Telegraf<Context>,
 		@InjectModel(User) private readonly userModel: typeof User,
+		@InjectModel(Admin) private readonly adminModel: typeof Admin,
 		@InjectModel(UserSurvey)
 		private readonly userSurveyModel: typeof UserSurvey,
 		@InjectModel(Survey) private readonly surveyModel: typeof Survey
@@ -32,7 +35,7 @@ export class AdminService {
 		}
 		if (userList.length == 0) {
 			userList.length = 0;
-			userList = await this.userModel.findAll();
+			userList = await this.userModel.findAll({ where: { status: true } });
 		}
 		const textUz = `📄 So'rovnoma № ${survey!.id}
 		
@@ -140,6 +143,7 @@ export class AdminService {
 				return;
 			}
 			const inliline: any = [];
+			let dd = 0;
 			for (const survey of surveys) {
 				const temp: any = [];
 				temp.push({
@@ -147,23 +151,22 @@ export class AdminService {
 					callback_data: `showfullsurvey_${survey.id}`,
 				});
 				inliline.push(temp);
+				dd += 1;
 			}
-			if (surveys.length > 5) {
-				inliline.push([
-					{
-						text: `<`,
-						callback_data: `prevsurvey_${surveys[0].id}_${surveys[1].id}`,
-					},
-					{
-						text: `${surveys.length}/${lengthSurvey.length}`,
-						callback_data: `none`,
-					},
-					{
-						text: `>`,
-						callback_data: `nextsurvey_${surveys[0].id}_${surveys[1].id}`,
-					},
-				]);
-			}
+			inliline.push([
+				{
+					text: `<`,
+					callback_data: `survey_prev_${surveys[0].id}_${surveys[dd - 1].id}`,
+				},
+				{
+					text: `${surveys[surveys.length - 1].id}/${lengthSurvey.length}`,
+					callback_data: `none`,
+				},
+				{
+					text: `>`,
+					callback_data: `survey_next_${surveys[0].id}_${surveys[dd - 1].id}`,
+				},
+			]);
 			await ctx.replyWithHTML("So'rovnomalar.", {
 				reply_markup: {
 					inline_keyboard: inliline,
@@ -222,6 +225,10 @@ Turi: ${survey.dataValues.survey_type.dataValues.name}
 									{
 										text: `Holatini o'zgartirish`,
 										callback_data: `setstatussurvey_${survey.id}`,
+									},
+									{
+										text: `Test qilish`,
+										callback_data: `testadmin_${survey.id}`,
 									},
 								],
 								[
@@ -291,6 +298,153 @@ Turi: ${survey.dataValues.survey_type.dataValues.name}
 			});
 		} catch (error) {
 			console.log(`Error on onSetStatusSurveyTo: `, error);
+		}
+	}
+	async responseToUser(ctx: Context) {
+		try {
+			const contextAction = ctx.callbackQuery!["data"];
+			const contextMessage = ctx.callbackQuery!["message"];
+			const userId = contextAction.split("_")[2];
+			const adminUserId = contextAction.split("_")[1];
+			await this.adminModel.update(
+				{ last_state: `responsetouser_${userId}` },
+				{ where: { userId: adminUserId } }
+			);
+			ctx.deleteMessage(contextMessage!.message_id);
+			ctx.replyWithHTML("Foydalanuvchiga javobni yozing.", {
+				...Markup.keyboard([["Asosiy Menu"]]).resize(),
+			});
+		} catch (error) {
+			console.log(error);
+		}
+	}
+	async onText(ctx: Context) {
+		try {
+			const adminId = String(ctx.from?.id);
+			const admin = await this.adminModel.findOne({
+				where: { userId: adminId },
+			});
+			if (!admin) {
+			} else {
+				if ("text" in ctx.message!) {
+					const adminInput = ctx.message.text;
+					if (admin.last_state.startsWith("responsetouser_")) {
+						const userId = admin.last_state.split("_")[1];
+						await this.bot.telegram.sendMessage(
+							Number(userId),
+							`<b>Sizning savolingizga javob keldi.</b>\n\n` +
+								adminInput +
+								`\nAdmin: ${admin.full_name}`,
+							{
+								parse_mode: "HTML",
+							}
+						);
+						admin.last_state = "";
+						await admin.save();
+						await ctx.replyWithHTML("Xabar foydalanuvchiga yuborildi.", {
+							...Markup.keyboard([["Asosiy Menu"]]).resize(),
+						});
+					}
+				}
+			}
+		} catch (error) {
+			console.log(`Error on admin's on text: `, error);
+		}
+	}
+	async testAdmin(ctx: Context) {
+		try {
+			const contextAction = ctx.callbackQuery!["data"];
+			const contextMessage = ctx.callbackQuery!["message"];
+			ctx.deleteMessage(contextMessage?.message_id);
+			const [text, surveyId] = contextAction.split("_");
+			const admins = await this.adminModel.findAll();
+			const survey = await this.surveyModel.findOne({
+				where: { id: +surveyId },
+			});
+			const textUz = `📄 So'rovnoma № ${survey!.id}
+		
+📝 So'rovnoma: ${survey?.title_uz}
+
+✏ Ta'rif: ${survey?.description_uz}
+
+💰 So'rovnoma uchun mukofot: ${survey?.reward_per_participant} so'm`;
+
+			for (const admin of admins) {
+				this.bot.telegram.sendMessage(Number(admin.userId), textUz, {
+					reply_markup: {
+						inline_keyboard: [
+							[
+								{
+									text: `Boshlash`,
+									callback_data: `startsurvey_${survey!.id}_${admin.userId}`,
+								},
+							],
+						],
+					},
+				});
+			}
+		} catch (error) {
+			console.log(`Error on test admin: `, error);
+		}
+	}
+	async npSurveyAdmin(ctx: Context) {
+		try {
+			const contextAction = ctx.callbackQuery!["data"];
+			const [text, direction, from, to] = contextAction.split("_");
+			let surveys: Survey[];
+			const lengthSurvey = await this.surveyModel.findAll();
+			if (direction == "prev") {
+				if (Number(to) - 10 < 0) {
+					return;
+				}
+				surveys = await this.surveyModel.findAll({
+					where: { id: { [Op.lt]: Number(from) }, status: "active" },
+					limit: 10,
+					order: [["id", "ASC"]],
+				});
+			} else {
+				if (lengthSurvey.length - Number(to) <= 0) {
+					return;
+				}
+				surveys = await this.surveyModel.findAll({
+					where: { id: { [Op.gt]: Number(to) }, status: "active" },
+					limit: 10,
+					order: [["id", "ASC"]],
+				});
+			}
+			let dd = 0;
+			const inliline: any = [];
+			for (const survey of surveys) {
+				const temp: any = [];
+				temp.push({
+					text: `${survey.id} - ${survey.title_uz}`,
+					callback_data: `showfullsurveyuser_${survey.id}`,
+				});
+				inliline.push(temp);
+				dd += 1;
+			}
+			inliline.push([
+				{
+					text: `<`,
+					callback_data: `survey_prev_${surveys[0].id}_${surveys[dd - 1].id}`,
+				},
+				{
+					text: `${surveys[surveys.length - 1].id}/${lengthSurvey.length}`,
+					callback_data: `none`,
+				},
+				{
+					text: `>`,
+					callback_data: `survey_next_${surveys[0].id}_${surveys[dd - 1].id}`,
+				},
+			]);
+
+			ctx.editMessageText("So'rovnomani tanlang.", {
+				reply_markup: {
+					inline_keyboard: inliline,
+				},
+			});
+		} catch (error) {
+			console.log(`Error on np survey admin: `, error);
 		}
 	}
 }

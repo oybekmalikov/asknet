@@ -1,17 +1,9 @@
 import { ApiProperty } from "@nestjs/swagger";
-import {
-	BelongsTo,
-	Column,
-	DataType,
-	ForeignKey,
-	Model,
-	Table,
-} from "sequelize-typescript";
-import { User } from "./users.model";
+import { Column, DataType, Model, Table } from "sequelize-typescript";
 
 interface IReferralCreationDto {
-	referrer_id: number;
-	referred_user_id: number;
+	referrer_id?: string;
+	referred_user_id?: string;
 	bonus_given: boolean;
 	referral_code: string;
 }
@@ -33,17 +25,15 @@ export class Referral extends Model<Referral, IReferralCreationDto> {
 		example: 1,
 		description: "Referrer's user ID",
 	})
-	@ForeignKey(() => User)
-	@Column({ type: DataType.INTEGER })
-	declare reffer_id: number;
+	@Column({ type: DataType.STRING })
+	declare reffer_id: string;
 
 	@ApiProperty({
 		example: 1,
 		description: "Referred user's ID",
 	})
-	@ForeignKey(() => User)
-	@Column({ type: DataType.INTEGER })
-	declare reffered_user_id: number;
+	@Column({ type: DataType.STRING })
+	declare reffered_user_id: string;
 
 	@ApiProperty({
 		example: true,
@@ -58,8 +48,4 @@ export class Referral extends Model<Referral, IReferralCreationDto> {
 	})
 	@Column({ type: DataType.STRING(50) })
 	declare referral_code: string;
-	@BelongsTo(() => User)
-	reffer: User;
-	@BelongsTo(() => User)
-	reffered_user: User;
 }

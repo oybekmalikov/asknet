@@ -52,7 +52,7 @@ export class Question extends Model<Question, IQuestionCreationAttr> {
 		description: "Field type",
 	})
 	@Column({
-		type: DataType.ENUM("text", "radio", "checkbox","region","district"),
+		type: DataType.ENUM("text", "radio", "region", "district"),
 	})
 	declare field_type: string;
 
@@ -61,7 +61,7 @@ export class Question extends Model<Question, IQuestionCreationAttr> {
 		description: "Input method",
 	})
 	@Column({
-		type: DataType.ENUM("single", "multiple", "text", "number"),
+		type: DataType.ENUM("single", "multiple"),
 	})
 	declare input_method: string;
 
@@ -98,7 +98,6 @@ export class Question extends Model<Question, IQuestionCreationAttr> {
 		description: "Description in Russian",
 	})
 	@Column({ type: DataType.TEXT })
-
 	declare description_ru: string;
 	@ApiProperty({
 		example: "is_married",
@@ -106,6 +105,12 @@ export class Question extends Model<Question, IQuestionCreationAttr> {
 	})
 	@Column({ type: DataType.STRING(255) })
 	declare key_phrase: string;
+	@ApiProperty({
+		example: true,
+		description: "Can user input other from btns",
+	})
+	@Column({ type: DataType.BOOLEAN })
+	declare has_user_input: boolean;
 	@ApiProperty({
 		example: "question_image.jpg",
 		description: "Image",

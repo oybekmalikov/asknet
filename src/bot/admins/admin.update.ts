@@ -40,4 +40,16 @@ export class AdminUpdate {
 	async onSetStatusSurveyTo(ctx: Context) {
 		return this.adminService.onSetStatusSurveyTo(ctx);
 	}
+	@Action(/^responsetouser_\d+_\d+$/)
+	async responseToUser(ctx: Context) {
+		return this.adminService.responseToUser(ctx);
+	}
+	@Action(/^testadmin_\d+$/)
+	async testAdmin(ctx: Context) {
+		return this.adminService.testAdmin(ctx);
+	}
+	@Action(/^survey_(prev|next)_\d+_\d+$/)
+	async npSurveyAdmin(ctx: Context) {
+		return this.adminService.npSurveyAdmin(ctx);
+	}
 }

@@ -1,6 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Column, DataType, HasMany, Model, Table } from "sequelize-typescript";
-import { Referral } from "./refferals.model";
 import { Response } from "./responses.model";
 import { SurveyStatus } from "./survey_status.model";
 import { UserSurvey } from "./user_surveys.model";
@@ -12,7 +11,7 @@ interface IUserCreationDto {
 	real_full_name?: string;
 	phone_number?: string;
 	language?: string;
-	gender?: string;
+	balance?: number;
 	offer_code?: string;
 	status?: boolean;
 	last_state?: string;
@@ -90,9 +89,10 @@ export class User extends Model<User, IUserCreationDto> {
 		description: "Gender in uz or ru",
 	})
 	@Column({
-		type: DataType.ENUM("male", "female"),
+		type: DataType.DECIMAL,
+		defaultValue: 0,
 	})
-	declare gender: string;
+	declare balance: number;
 
 	@ApiProperty({
 		example: "REF123",
@@ -105,7 +105,7 @@ export class User extends Model<User, IUserCreationDto> {
 		example: true,
 		description: "Status",
 	})
-	@Column({ type: DataType.BOOLEAN })
+	@Column({ type: DataType.BOOLEAN, defaultValue: false })
 	declare status: boolean;
 
 	@ApiProperty({
@@ -124,8 +124,6 @@ export class User extends Model<User, IUserCreationDto> {
 	survey_status: SurveyStatus[];
 	@HasMany(() => Response)
 	responses: Response[];
-	@HasMany(() => Referral)
-	referral: Referral[];
 	@HasMany(() => UserSurvey)
 	user_surveys: UserSurvey[];
 }
