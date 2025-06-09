@@ -13,6 +13,7 @@ import { QuestionAnswer } from "../../question_answers/models/question_answer.mo
 import { QuestionLogic } from "../../question_logics/models/question_logic.model";
 import { Question } from "../../questions/models/question.model";
 import { Region } from "../../region/models/region.model";
+import { SurveyStatistics } from "../../survey_statistics/models/survey_statistic.model";
 import { Survey } from "../../surveys/models/survey.model";
 import {
 	aboutBotTextRu,
@@ -33,6 +34,8 @@ export class UserService {
 	constructor(
 		@InjectBot(BOT_NAME) private readonly bot: Telegraf<Context>,
 		@InjectModel(User) private readonly userModel: typeof User,
+		@InjectModel(SurveyStatistics)
+		private readonly surveyStatisticsModel: typeof SurveyStatistics,
 		@InjectModel(Admin) private readonly adminModel: typeof Admin,
 		@InjectModel(Referral) private readonly referralModel: typeof Referral,
 		@InjectModel(UserSurvey)
@@ -126,6 +129,11 @@ export class UserService {
 		}
 	}
 	async endOfSurvey(ctx: Context, currUser: User, survey: Survey) {
+		const stat = await this.surveyStatisticsModel.findOne({
+			where: { survey_id: survey.id },
+		});
+		stat!.completed_responses += 1;
+		await stat!.save();
 		await this.userSurveyModel.update(
 			{ status: true },
 			{ where: { userId: currUser.id, surveyId: survey.id } }
@@ -577,6 +585,18 @@ Agar rozi bo‘lsangiz, «Davom etish» tugmasini bosing.
 					);
 					return;
 				} else {
+					const stat = await this.surveyStatisticsModel.findOne({
+						where: { survey_id: +surveyId },
+					});
+					if (!stat) {
+						await this.surveyStatisticsModel.create({
+							total_responses: 1,
+							survey_id: +surveyId,
+						});
+					} else {
+						stat.total_responses += 1;
+						await stat.save();
+					}
 					const questions = await this.questionModel.findAll({
 						where: { survey_id: surveyId },
 						order: [["id", "ASC"]],

@@ -12,7 +12,7 @@ import { Survey } from "../../surveys/models/survey.model";
 interface ISurveyStatisticsCreationDto {
 	survey_id: number;
 	total_responses: number;
-	completed_responses: number;
+	completed_responses?: number;
 }
 
 @Table({ tableName: "survey_statistics", freezeTableName: true })

@@ -1,7 +1,5 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { InjectModel } from "@nestjs/sequelize";
-import { CreateSurveyStatisticsDto } from "./dto/create-survey_statistic.dto";
-import { UpdateSurveyStatisticDto } from "./dto/update-survey_statistic.dto";
 import { SurveyStatistics } from "./models/survey_statistic.model";
 
 @Injectable()

@@ -6,6 +6,7 @@ import { QuestionAnswer } from "../question_answers/models/question_answer.model
 import { QuestionLogic } from "../question_logics/models/question_logic.model";
 import { Question } from "../questions/models/question.model";
 import { Region } from "../region/models/region.model";
+import { SurveyStatistics } from "../survey_statistics/models/survey_statistic.model";
 import { Survey } from "../surveys/models/survey.model";
 import { AdminService } from "./admins/admin.service";
 import { AdminUpdate } from "./admins/admin.update";
@@ -34,6 +35,7 @@ import { UserUpdate } from "./users/users.update";
 			Region,
 			District,
 			UserSurvey,
+			SurveyStatistics,
 		]),
 	],
 	controllers: [],

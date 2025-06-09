@@ -2,13 +2,16 @@ import {
 	Body,
 	Controller,
 	Delete,
+	ForbiddenException,
 	Get,
 	Param,
 	Patch,
 	Post,
+	Req,
 	UseGuards,
 } from "@nestjs/common";
 import { ApiOperation, ApiResponse } from "@nestjs/swagger";
+import { Request } from "express";
 import { accessMatrix } from "../app.constants";
 import { AccessControlGuard } from "../common/guards/access-control.guard";
 import { AuthGuard } from "../common/guards/auth.guard";
@@ -35,8 +38,17 @@ export class SurveysController {
 	@UseGuards(new AccessControlGuard(accessMatrix, "surveys"))
 	@UseGuards(AuthGuard)
 	@Get()
-	findAll() {
-		return this.surveysService.findAll();
+	findAll(@Req() req: Request) {
+		const user = (req as any).user;
+		if (
+			user.roles.includes("admin") ||
+			user.roles.includes("superadmin") 
+		) {
+			return this.surveysService.findAll();
+		} else if (user.roles.includes("client")) {
+			return this.surveysService.findByClientId(user.id);
+		}
+		throw new ForbiddenException("Access denied");
 	}
 
 	@ApiOperation({ summary: "Get One Survey By Id" })
@@ -44,8 +56,16 @@ export class SurveysController {
 	@UseGuards(new AccessControlGuard(accessMatrix, "surveys"))
 	@UseGuards(AuthGuard)
 	@Get(":id")
-	findOne(@Param("id") id: string) {
-		return this.surveysService.findOne(+id);
+	findOne(@Param("id") id: string, @Req() req: Request) {
+		const user = (req as any).user;
+		if (
+			user.roles.includes("admin") ||
+			user.roles.includes("superadmin") 
+		) {
+			return this.surveysService.findOne(+id);
+		} else if (user.roles.includes("client")) {
+			return this.surveysService.findOneByClientId(+id, user.id);
+		}
 	}
 
 	@ApiOperation({ summary: "Update Survey By Id" })

@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import {
+	ForbiddenException,
+	Injectable,
+	NotFoundException,
+} from "@nestjs/common";
 import { InjectModel } from "@nestjs/sequelize";
 import { CreateSurveyDto } from "./dto/create-survey.dto";
 import { UpdateSurveyDto } from "./dto/update-survey.dto";
@@ -59,5 +63,25 @@ export class SurveysService {
 			await this.surveyModel.destroy({ where: { id } });
 			return { message: "Survey deleted" };
 		}
+	}
+	async findByClientId(clientId: number) {
+		const data = await this.surveyModel.findAll({
+			where: { client_id: clientId },
+			include: { all: true },
+		});
+		if (!data.length) {
+			return { message: "You don't have any survey data" };
+		}
+		return data;
+	}
+	async findOneByClientId(surveyId: number, clientId: number) {
+		const data = await this.surveyModel.findOne({
+			where: { client_id: clientId, id: surveyId },
+			include: { all: true },
+		});
+		if (!data) {
+			throw new ForbiddenException("You can access only your own data.");
+		}
+		return data;
 	}
 }
