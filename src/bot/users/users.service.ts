@@ -335,8 +335,27 @@ export class UserService {
 										}
 										return;
 									}
+									if (question.field_type == "location") {
+										user.actions = `survey_${survey!.id}_${question.id}_${logic!.id}_${user.id}`;
+										await user.save();
+										await ctx.replyWithHTML(
+											user.language == "uz"
+												? question.title_uz
+												: question.title_ru,
+											{
+												...Markup.keyboard([
+													Markup.button.locationRequest(
+														user.language == "uz"
+															? "Joylashuvni yuborish"
+															: "Отправить местоположение"
+													),
+												]).resize(),
+											}
+										);
+										return;
+									}
 									const inline_btns: any = [];
-									if (answers[0].count_option == " 1") {
+									if (answers[0].count_option == "1") {
 										for (const ans of answers) {
 											const temp: any = [];
 											if (question.input_method == "multiple") {
@@ -570,6 +589,17 @@ Agar rozi bo‘lsangiz, «Davom etish» tugmasini bosing.
 			if (!user) {
 				await this.throwToStart(ctx);
 			} else {
+				const userSurvey = await this.userSurveyModel.findAll({
+					where: { userId: user.id, surveyId: +surveyId, status: true },
+				});
+				if (userSurvey.length) {
+					await ctx.reply(
+						user.language == "uz"
+							? "Siz bu so'rovnomada allaqachon ishtirok etgansiz ✅."
+							: "Вы уже приняли участие в этом опросе ✅."
+					);
+					return;
+				}
 				const survey = await this.surveyModel.findOne({
 					where: { id: surveyId },
 				});
@@ -624,15 +654,26 @@ Agar rozi bo‘lsangiz, «Davom etish» tugmasini bosing.
 						);
 						return;
 					} else {
+						const inline_btns_txt: any = [];
 						if (questions[0].field_type == "text") {
 							user.actions = `survey_${survey.id}_${questions[0].id}_${logic!.id}_${user.id}`;
+							inline_btns_txt.push([
+								{
+									text: user.language == "uz" ? `ℹ️ Batafsil` : `ℹ️ Подробно`,
+									callback_data: `indetail_${survey!.id}_${questions[0].id}_${logic!.id}_${user.id}`,
+								},
+							]);
 							await user.save();
 							if (!questions[0].image) {
 								await ctx.replyWithHTML(
 									user.language == "uz"
 										? questions[0].title_uz
 										: questions[0].title_ru,
-									{ ...Markup.removeKeyboard() }
+									{
+										reply_markup: {
+											inline_keyboard: inline_btns_txt,
+										},
+									}
 								);
 							} else {
 								const { Input } = require("telegraf");
@@ -653,9 +694,29 @@ Agar rozi bo‘lsangiz, «Davom etish» tugmasini bosing.
 										user.language == "uz"
 											? questions[0].title_uz
 											: questions[0].title_ru,
-									...Markup.removeKeyboard(),
+									reply_markup: {
+										inline_keyboard: inline_btns_txt,
+									},
 								});
 							}
+							return;
+						} else if (questions[0].field_type == "location") {
+							user.actions = `survey_${survey!.id}_${questions[0].id}_${logic!.id}_${user.id}`;
+							await user.save();
+							await ctx.replyWithHTML(
+								user.language == "uz"
+									? questions[0].title_uz
+									: questions[0].title_ru,
+								{
+									...Markup.keyboard([
+										Markup.button.locationRequest(
+											user.language == "uz"
+												? "Joylashuvni yuborish"
+												: "Отправить местоположение"
+										),
+									]).resize(),
+								}
+							);
 							return;
 						}
 						const inline_btns: any = [];
@@ -840,9 +901,24 @@ Agar rozi bo‘lsangiz, «Davom etish» tugmasini bosing.
 						response_time: new Date().toISOString(),
 					});
 				}
-				const logic = await this.questionLogicModel.findOne({
+				const logics = await this.questionLogicModel.findAll({
 					where: { question_id: +questionId },
 				});
+				let logic: any;
+				if (logics.length == 1) {
+					logic = logics[0];
+				} else {
+					for (const i of logics) {
+						if (i.option_id == Number(answerId)) {
+							logic = i;
+							break;
+						}
+					}
+					if (!logic) {
+						const nullItem = logics.filter((val) => val.option_id == 0);
+						logic = nullItem[0];
+					}
+				}
 				const survey = await this.surveyModel.findOne({
 					where: { id: +surveyId },
 				});
@@ -923,19 +999,34 @@ Agar rozi bo‘lsangiz, «Davom etish» tugmasini bosing.
 							);
 							return;
 						}
-						if (!answers.length && question.field_type != "text") {
+						if (
+							!answers.length &&
+							question.field_type != "text" &&
+							question.field_type != "location"
+						) {
 							await this.endOfSurvey(ctx, user, survey!);
 							return;
 						} else {
+							const inline_btns_txt: any = [];
 							if (question.field_type == "text") {
 								user.actions = `survey_${survey!.id}_${question.id}_${logic!.id}_${user.id}`;
 								await user.save();
+								inline_btns_txt.push([
+									{
+										text: user.language == "uz" ? `ℹ️ Batafsil` : `ℹ️ Подробно`,
+										callback_data: `indetail_${survey!.id}_${question.id}_${logic!.id}_${user.id}`,
+									},
+								]);
 								if (!question.image) {
 									await ctx.replyWithHTML(
 										user.language == "uz"
 											? question.title_uz
 											: question.title_ru,
-										{ ...Markup.removeKeyboard() }
+										{
+											reply_markup: {
+												inline_keyboard: inline_btns_txt,
+											},
+										}
 									);
 								} else {
 									const { Input } = require("telegraf");
@@ -956,9 +1047,27 @@ Agar rozi bo‘lsangiz, «Davom etish» tugmasini bosing.
 											user.language == "uz"
 												? question.title_uz
 												: question.title_ru,
-										...Markup.removeKeyboard(),
+										reply_markup: {
+											inline_keyboard: inline_btns_txt,
+										},
 									});
 								}
+								return;
+							} else if (question.field_type == "location") {
+								user.actions = `survey_${survey!.id}_${question.id}_${logic!.id}_${user.id}`;
+								await user.save();
+								await ctx.replyWithHTML(
+									user.language == "uz" ? question.title_uz : question.title_ru,
+									{
+										...Markup.keyboard([
+											Markup.button.locationRequest(
+												user.language == "uz"
+													? "Joylashuvni yuborish"
+													: "Отправить местоположение"
+											),
+										]).resize(),
+									}
+								);
 								return;
 							}
 							const inline_btns: any = [];
@@ -1980,6 +2089,17 @@ Agar rozi bo‘lsangiz, «Davom etish» tugmasini bosing.
 				this.throwToStart(ctx);
 				return;
 			} else {
+				const userSurvey = await this.userSurveyModel.findAll({
+					where: { userId: user.id, surveyId: id, status: true },
+				});
+				if (userSurvey.length) {
+					await ctx.reply(
+						user.language == "uz"
+							? "Siz bu so'rovnomada allaqachon ishtirok etgansiz ✅."
+							: "Вы уже приняли участие в этом опросе ✅."
+					);
+					return;
+				}
 				const survey = await this.surveyModel.findByPk(id);
 				const textUz = `📄 So'rovnoma № ${survey!.id}
 📝 Sorovnoma' tavsifi: ${survey?.title_uz}

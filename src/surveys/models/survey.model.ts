@@ -21,6 +21,7 @@ interface ISurveyCreationAttr {
 	title_ru: string;
 	description_uz: string;
 	description_ru: string;
+	forWho: string;
 	region_id: number;
 	district_id: number;
 	location: string;
@@ -86,7 +87,12 @@ export class Survey extends Model<Survey, ISurveyCreationAttr> {
 	})
 	@Column({ type: DataType.TEXT })
 	declare description_ru: string;
-
+	@ApiProperty({
+		example: "students",
+		description: "school/univercity/job(or company)/pensioner",
+	})
+	@Column({ type: DataType.STRING(50) })
+	declare forWho: string;
 	@ApiProperty({
 		example: 1,
 		description: "Region's ID",
@@ -102,7 +108,7 @@ export class Survey extends Model<Survey, ISurveyCreationAttr> {
 	declare district_id: number;
 
 	@ApiProperty({
-		example: "41.2995,69.2401",
+		example: "41.2995|69.2401",
 		description: "Location coordinates (latitude, longitude)",
 	})
 	@Column({ type: DataType.STRING(50) })

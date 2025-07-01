@@ -9,7 +9,6 @@ import {
 	IsString,
 } from "class-validator";
 
-
 export class CreateSurveyDto {
 	@ApiProperty({
 		example: 1,
@@ -47,7 +46,12 @@ export class CreateSurveyDto {
 	})
 	@IsString({ message: "description_ru type must be string" })
 	description_ru: string;
-
+	@ApiProperty({
+		example: "students",
+		description: "school/univercity/job(or company)/pensioner",
+	})
+	@IsString({ message: "occupation type must be string" })
+	forWho: string;
 	@ApiProperty({
 		example: 1,
 		description: "Region's ID",

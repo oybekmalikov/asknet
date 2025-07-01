@@ -16,6 +16,7 @@ export class RegionService {
 	async findAll() {
 		const regions = await this.regionModel.findAll({
 			include: { all: true },
+			order: [["name_uz", "ASC"]],
 		});
 		if (!regions.length) {
 			return { message: "Regions not found" };

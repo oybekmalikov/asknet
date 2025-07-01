@@ -5,7 +5,11 @@ import { Op } from "sequelize";
 import { Context, Markup, Telegraf } from "telegraf";
 import { Admin } from "../../admins/models/admin.models";
 import { BOT_NAME } from "../../app.constants";
+import { District } from "../../district/models/district.model";
+import { Question } from "../../questions/models/question.model";
+import { Region } from "../../region/models/region.model";
 import { Survey } from "../../surveys/models/survey.model";
+import { Response } from "../models/responses.model";
 import { UserSurvey } from "../models/user_surveys.model";
 import { User } from "../models/users.model";
 
@@ -14,7 +18,11 @@ export class AdminService {
 	constructor(
 		@InjectBot(BOT_NAME) private readonly bot: Telegraf<Context>,
 		@InjectModel(User) private readonly userModel: typeof User,
+		@InjectModel(Region) private readonly regionModel: typeof Region,
+		@InjectModel(District) private readonly districtModel: typeof District,
 		@InjectModel(Admin) private readonly adminModel: typeof Admin,
+		@InjectModel(Response) private readonly responseModel: typeof Response,
+		@InjectModel(Question) private readonly questionsModel: typeof Question,
 		@InjectModel(UserSurvey)
 		private readonly userSurveyModel: typeof UserSurvey,
 		@InjectModel(Survey) private readonly surveyModel: typeof Survey
@@ -23,15 +31,108 @@ export class AdminService {
 		const contextAction = ctx.callbackQuery!["data"];
 		const surveyId = contextAction.split("_")[1];
 		const survey = await this.surveyModel.findOne({ where: { id: surveyId } });
+		if (!survey) {
+			await ctx.replyWithHTML("So'rovnoma mavjud emas!");
+			return;
+		}
 		let userList: any = [];
-		if (!(survey?.location == null || survey.radius == 0)) {
-			// lokatsiya bo'yicha topib uni radiusda hisoblanadi va bor userlar listga solinadi
-		}
-		if (!(survey?.district_id == 1000 || survey?.region_id == 1000)) {
-			// shu regiondan bo'lgan userlar topiladi
-		}
-		if (!(survey?.start_age == 0 || survey!.finish_age == 150)) {
-			// shu yoshdagi insonlar listga joylanadi
+		if (survey.forWho != "-") {
+			if (!(survey?.location == null || survey.radius == 0)) {
+				// lokatsiya bo'yicha topib uni radiusda hisoblanadi va bor userlar listga solinadi
+				const locQuestion = await this.questionsModel.findOne({
+					where: { key_phrase: "user_location" },
+				});
+				const allResponces = await this.responseModel.findAll({
+					where: { question_id: locQuestion!.id },
+				});
+				const [surveyLat, surveyLon] = survey.location.split("|");
+				for (const response of allResponces) {
+					const [userLat, userLon] = response.response.split("|");
+					const res = this.getDistanceFromLatLonInMeters(
+						Number(surveyLat),
+						Number(surveyLon),
+						Number(userLat),
+						Number(userLon)
+					);
+					if (res <= survey.radius) {
+						const user = await this.userModel.findOne({
+							where: { id: response.participant_id },
+						});
+						userList.push(user);
+					}
+				}
+			} else if (!(survey?.district_id == 0 && survey?.region_id == 0)) {
+				if (
+					(survey.region_id != 0 && survey.district_id != 0) ||
+					(survey.region_id == 0 && survey.district_id != 0)
+				) {
+					const districtQuestions = await this.questionsModel.findOne({
+						where: { key_phrase: "district" },
+					});
+					const allResponces = await this.responseModel.findAll({
+						where: { question_id: districtQuestions!.id },
+					});
+					for (const response of allResponces) {
+						const district = await this.districtModel.findOne({
+							where: {
+								[Op.or]: [
+									{ name_uz: response.response },
+									{ name_ru: response.response },
+								],
+							},
+						});
+						if (district!.id == survey.district_id) {
+							const user = await this.userModel.findOne({
+								where: { id: response.participant_id },
+							});
+							userList.push(user);
+						}
+					}
+				} else if (survey.region_id != 0 && survey.district_id == 0) {
+					const regionQuestions = await this.questionsModel.findOne({
+						where: { key_phrase: "region" },
+					});
+					const allResponces = await this.responseModel.findAll({
+						where: { question_id: regionQuestions!.id },
+					});
+					for (const response of allResponces) {
+						const region = await this.regionModel.findOne({
+							where: {
+								[Op.or]: [
+									{ name_uz: response.response },
+									{ name_ru: response.response },
+								],
+							},
+						});
+						if (region?.id == survey.region_id) {
+							const user = await this.userModel.findOne({
+								where: { id: response.participant_id },
+							});
+							userList.push(user);
+						}
+					}
+				}
+			}
+			if (!(survey?.start_age == 0 || survey!.finish_age == 150)) {
+				const questionAge = await this.questionsModel.findOne({
+					where: { key_phrase: "age" },
+				});
+				const allResponces = await this.responseModel.findAll({
+					where: { question_id: questionAge!.id },
+				});
+				for (const response of allResponces) {
+					const [minAge, maxAge] = response.response.split("-");
+					if (
+						Number(minAge) <= survey.finish_age &&
+						Number(maxAge) > survey.start_age
+					) {
+						const user = await this.userModel.findOne({
+							where: { id: response.participant_id },
+						});
+						userList.push(user);
+					}
+				}
+			}
 		}
 		if (userList.length == 0) {
 			userList.length = 0;
@@ -94,6 +195,26 @@ export class AdminService {
 			console.log(`Error on send survey to users: `, error);
 		}
 	}
+	getDistanceFromLatLonInMeters(
+		lat1: number,
+		lon1: number,
+		lat2: number,
+		lon2: number
+	) {
+		const R = 6371000;
+		const dLat = ((lat2 - lat1) * Math.PI) / 180;
+		const dLon = ((lon2 - lon1) * Math.PI) / 180;
+		const a =
+			Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+			Math.cos((lat1 * Math.PI) / 180) *
+				Math.cos((lat2 * Math.PI) / 180) *
+				Math.sin(dLon / 2) *
+				Math.sin(dLon / 2);
+		const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+		const distance = R * c;
+		return distance;
+	}
+
 	async onSurveys(ctx: Context) {
 		try {
 			// "draft", "active", "complated"
@@ -418,7 +539,7 @@ Turi: ${survey.dataValues.survey_type.dataValues.name}
 				const temp: any = [];
 				temp.push({
 					text: `${survey.id} - ${survey.title_uz}`,
-					callback_data: `showfullsurveyuser_${survey.id}`,
+					callback_data: `showfullsurvey_${survey.id}`,
 				});
 				inliline.push(temp);
 				dd += 1;

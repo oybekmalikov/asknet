@@ -52,7 +52,7 @@ export class Question extends Model<Question, IQuestionCreationAttr> {
 		description: "Field type",
 	})
 	@Column({
-		type: DataType.ENUM("text", "radio", "region", "district"),
+		type: DataType.ENUM("text", "radio", "region", "district","location"),
 	})
 	declare field_type: string;
 
