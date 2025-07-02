@@ -1,12 +1,12 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsEnum, IsNotEmpty, IsString } from "class-validator";
+import { IsEnum, IsNotEmpty, IsNumber, IsString } from "class-validator";
 
 export class CreateQuestionDto {
 	@ApiProperty({
 		example: 1,
 		description: "Survey's ID",
 	})
-	@IsString({ message: "survey_id must be an integer" })
+	@IsNumber({},{ message: "survey_id must be an integer" })
 	survey_id: number;
 
 	@ApiProperty({
@@ -31,7 +31,7 @@ export class CreateQuestionDto {
 		example: 1,
 		description: "Parent question ID",
 	})
-	@IsString({ message: "parent_question_id must be an integer" })
+	@IsNumber({},{ message: "parent_question_id must be an integer" })
 	parent_question_id: number;
 
 	@ApiProperty({
